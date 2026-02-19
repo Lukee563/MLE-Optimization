@@ -1,15 +1,17 @@
 function [theta, hist] = solve_gd(problem, theta0, opts)
-%SOLVE_GD Gradient Descent (Section 3: fixed step size only)
+
+
+%SOLVE_GD Gradient Descent (fixed step size)
 %
 %   [theta, hist] = solve_gd(problem, theta0, opts)
 %
 % Implements gradient descent with a FIXED step size:
-%     theta_{k+1} = theta_k - alpha * grad L(theta_k)
+%     theta_{k+1} = theta_k - alpha * grad f(theta_k)
 %
 % INPUTS
 %   problem.Xtr : N x d training data (rows are samples)
 %   problem.ytr : N x 1 labels in {0,1}
-%   problem.mu  : regularization parameter (set mu = 0 in Section 3)
+%   problem.mu  : regularization parameter
 %   problem.obj : objective function handle
 %                [f,g] = obj(theta, X, y, mu, mode) with mode=2 returning f,g
 %
@@ -17,26 +19,24 @@ function [theta, hist] = solve_gd(problem, theta0, opts)
 %
 %   opts.maxIter     : maximum number of iterations
 %   opts.tolGrad     : stopping tolerance on gradient norm
-%   opts.alpha_fixed : fixed step size alpha > 0
+%   opts.alpha_fixed : fixed step size alpha > 0 (MUST be scalar)
 %   opts.printEvery  : print frequency (set 0 to disable)
 %
 % OUTPUTS
 %   theta : final iterate
 %
 %   hist  : iteration history struct with fields
-%       hist.iter       : (m x 1) iteration indices, starting at 0
-%       hist.f          : (m x 1) objective values f(theta_k)
-%       hist.gn         : (m x 1) gradient norms ||grad f(theta_k)||_2
-%       hist.theta_norm : (m x 1) parameter norms ||theta_k||_2
-%     where m is the number of stored iterates (<= maxIter+1).
-
+%       hist.iter       : iteration indices, starting at 0
+%       hist.f          : objective values f(theta_k)
+%       hist.gn         : gradient norms ||grad f(theta_k)||_2
+%       hist.theta_norm : parameter norms ||theta_k||_2
 
     % ----- unpack problem -----
-    X     = problem.Xtr;
-    y     = problem.ytr(:);
-    mu    = problem.mu;
-    obj   = problem.obj;
-    
+    X   = problem.Xtr;
+    y   = problem.ytr(:);
+    mu  = problem.mu;
+    obj = problem.obj;
+
     % ensure theta is a column vector
     theta = theta0(:);
 
@@ -45,6 +45,12 @@ function [theta, hist] = solve_gd(problem, theta0, opts)
     tolGrad    = opts.tolGrad;
     alpha      = opts.alpha_fixed;
     printEvery = opts.printEvery;
+
+    % ----- validate alpha -----
+    if isempty(alpha) || ~isscalar(alpha) || ~isfinite(alpha) || alpha <= 0
+        error('opts.alpha_fixed must be a finite, positive scalar. Got: size=%s, value=%s.', ...
+              mat2str(size(alpha)), mat2str(alpha));
+    end
 
     % ----- initialize history (preallocate to max possible length) -----
     hist.iter       = zeros(maxIter+1,1);
@@ -67,24 +73,13 @@ function [theta, hist] = solve_gd(problem, theta0, opts)
 
     % ----- main GD loop -----
     for k = 1:maxIter
-     
-        %===============================
-        % TODO (Problem 3.1): One GD step with fixed step size
-        % At this point, g is the gradient at the current iterate theta (i.e., g = ∇f(theta)).
-        % 1) Choose the descent direction p_k = -g.
-        % 2) Update: theta <- theta + alpha * p_k  (equivalently theta <- theta - alpha * g).
-        %
-        % Fill in:
-        %   p     = ...
-        %   theta = ...
-        %===============================
-        p     = NaN;   % TODO: replace NaN with the search direction
-        theta = NaN;   % TODO: replace NaN with the updated theta
 
-        % Remove this error message after you implement the update. 
-        error('TODO (Problem 3.1): Implement GD update.');
-        %===============================
-        
+        % Descent direction
+        p = -g;
+
+        % GD update (use .* to avoid dimension issues if alpha is accidentally non-scalar)
+        theta = theta + alpha .* p;   % equivalent: theta = theta - alpha.*g;
+
         % Evaluate objective and gradient at new iterate
         [f,g] = obj(theta, X, y, mu, 2);
         gn = norm(g);
@@ -99,15 +94,14 @@ function [theta, hist] = solve_gd(problem, theta0, opts)
             fprintf('GD iter %6d: f = %.6e, ||g|| = %.3e\n', k, f, gn);
         end
 
-        % if gn <= tolGrad, truncate history and return
+        % stopping criterion
         if gn <= tolGrad
-             hist.iter       = hist.iter(1:k+1);
-             hist.f          = hist.f(1:k+1);
-             hist.gn         = hist.gn(1:k+1);
-             hist.theta_norm = hist.theta_norm(1:k+1);
+            hist.iter       = hist.iter(1:k+1);
+            hist.f          = hist.f(1:k+1);
+            hist.gn         = hist.gn(1:k+1);
+            hist.theta_norm = hist.theta_norm(1:k+1);
             return;
         end
-        
     end
 
     % trim history if maxIter reached
@@ -116,4 +110,3 @@ function [theta, hist] = solve_gd(problem, theta0, opts)
     hist.gn         = hist.gn(1:maxIter+1);
     hist.theta_norm = hist.theta_norm(1:maxIter+1);
 end
-

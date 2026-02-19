@@ -78,8 +78,9 @@ function [theta, hist] = solve_gd(problem, theta0, opts)
         %   p     = ...
         %   theta = ...
         %===============================
-        p     = NaN;   % TODO: replace NaN with the search direction
-        theta = NaN;   % TODO: replace NaN with the updated theta
+        p     = -g;   % TODO: replace NaN with the search direction
+        theta_ = theta + alpha * p;
+   % TODO: replace NaN with the updated theta
 
         % Remove this error message after you implement the update. 
         error('TODO (Problem 3.1): Implement GD update.');
