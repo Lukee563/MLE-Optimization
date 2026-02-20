@@ -1,3 +1,8 @@
 # AM230 - Numerical Optimization
 ### Course Description
-Introduces numerical optimization tools widely used in engineering, science, and economics. Topics include: line-search and trust-region methods for unconstrained optimization, fundamental theory of constrained optimization, simplex and interior-point methods for linear programming, and computational algorithms for nonlinear programming.
+This report studies numerical optimization methods for logistic regression, emphasizing how curvature and conditioning determine algorithmic convergence. 
+
+In this project, we do the following:
+- Derive gradient and Hessian expressions
+- Establish convexity and strong convexity under L2 regularization,
+- ompare fixed-step gradient descent, line-search variants, and Newton-type methods through controlled computational experiments.
